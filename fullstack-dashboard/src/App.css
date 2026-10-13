@@ -1,0 +1,41 @@
+/* Container ko screen ki poori width dein */
+.dash-container {
+  width: 100%;
+  max-width: 100% !important;
+  min-height: 100vh;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+}
+
+/* Grid aur Card ko poori width par stretch karein */
+.dash-grid {
+  width: 100%;
+}
+
+.card-panel {
+  width: 100%;
+  max-width: 100% !important;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+/* Table ko 100% width dein */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.flat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.flat-table th,
+.flat-table td {
+  padding: 14px 16px;
+  text-align: left;
+}
