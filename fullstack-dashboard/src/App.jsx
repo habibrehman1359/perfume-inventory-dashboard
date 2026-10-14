@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 export default function App() {
-  const [data, setData] = useState(null);
+  const [productsList, setProductsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,11 +12,32 @@ export default function App() {
   useEffect(() => {
     fetch("http://localhost:3000/api/v1/test")
       .then((res) => {
-        if (!res.ok) throw new Error("API call response was not ok");
+        if (!res.ok) throw new Error("API response error");
         return res.json();
       })
       .then((json) => {
-        setData(json);
+        // Har tarah ke JSON structure se products nikalne ka tarika
+        let items = [];
+        if (Array.isArray(json)) {
+          items = json;
+        } else if (Array.isArray(json?.products)) {
+          items = json.products;
+        } else if (Array.isArray(json?.data?.products)) {
+          items = json.data.products;
+        } else if (Array.isArray(json?.data)) {
+          items = json.data;
+        } else {
+          // Object ke andar arrays dhoondhein
+          const candidate = Object.values(json || {}).find(
+            (val) =>
+              Array.isArray(val) &&
+              val.length > 0 &&
+              typeof val[0] === "object",
+          );
+          if (candidate) items = candidate;
+        }
+
+        setProductsList(items);
         setLoading(false);
       })
       .catch((err) => {
@@ -40,16 +61,10 @@ export default function App() {
         <div className="alert-box">
           <h4>Failed to connect to API</h4>
           <p>{error}</p>
-          <small>
-            Make sure backend server is running on port 3000 and CORS is
-            enabled.
-          </small>
         </div>
       </div>
     );
   }
-
-  const productsCount = data?.products?.length || 0;
 
   return (
     <div className="dash-container">
@@ -64,7 +79,7 @@ export default function App() {
       <div className="stats-row">
         <div className="stat-pill">
           <span className="stat-title">Total Products</span>
-          <span className="stat-value">{productsCount}</span>
+          <span className="stat-value">{productsList.length}</span>
         </div>
         <div className="stat-pill">
           <span className="stat-title">Active Database</span>
@@ -76,10 +91,10 @@ export default function App() {
         <section className="card-panel">
           <div className="panel-header">
             <h3>Inventory Products</h3>
-            <span className="counter-badge">{productsCount} items</span>
+            <span className="counter-badge">{productsList.length} items</span>
           </div>
 
-          {productsCount > 0 ? (
+          {productsList.length > 0 ? (
             <div className="table-responsive">
               <table className="flat-table">
                 <thead>
@@ -91,17 +106,12 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.products.map((item, idx) => (
+                  {productsList.map((item, idx) => (
                     <tr key={item.id || idx}>
                       <td className="id-col">{item.id || idx + 1}</td>
                       <td className="img-col">
                         <img
-                          src={
-                            item.image_url ||
-                            item.image ||
-                            item.img ||
-                            fallbackImage
-                          }
+                          src={item.image || item.image_url || fallbackImage}
                           alt={item.name || "Product"}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
@@ -117,13 +127,15 @@ export default function App() {
                         />
                       </td>
                       <td className="name-col">
-                        {item.name || item.title || "Unnamed Product"}
+                        <strong>{item.name || "Unnamed Product"}</strong>
+                        {item.sku && (
+                          <div style={{ fontSize: "12px", color: "#888" }}>
+                            SKU: {item.sku}
+                          </div>
+                        )}
                       </td>
                       <td className="price-col">
-                        Rs.{" "}
-                        {Number(
-                          item.price || item.current_price || 0,
-                        ).toLocaleString()}
+                        Rs. {Number(item.price || 0).toLocaleString()}
                       </td>
                     </tr>
                   ))}
